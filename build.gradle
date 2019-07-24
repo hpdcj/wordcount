@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+group 'test'
+version '1.0-SNAPSHOT'
+
+sourceCompatibility = 1.8
+mainClassName='WordCountPcj'
+tasks.run.workingDir = new File ("input")
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'pl.edu.icm.pcj:pcj:5.0.8'
+}
