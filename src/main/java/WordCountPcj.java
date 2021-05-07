@@ -1,7 +1,6 @@
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -41,7 +40,7 @@ public class WordCountPcj implements StartPoint {
         if (args.length > 0) {
             nodeFileName = args[0];
         }
-        PCJ.deploy(WordCountPcj.class, new NodesDescription(nodeFileName));
+        PCJ.start(WordCountPcj.class, new NodesDescription(nodeFileName));
     }
     String myFileName = "";
     long start, intermediate, stop;
@@ -73,6 +72,8 @@ public class WordCountPcj implements StartPoint {
     private void countWords() throws IOException {
         final Pattern WORD_BOUNDARY = Pattern.compile("\\s*\\b\\s*");
         final Map<String, Integer> wordCounts = new HashMap<>();
+
+//        Files.readAllLines(Paths.get(myFileName), StandardCharsets.UTF_8).stream().forEach(line -> {
         Files.readAllLines(Paths.get(myFileName), StandardCharsets.ISO_8859_1).stream().forEach(line -> {
             for (String word : WORD_BOUNDARY.split(line)) {
                 if (word.isEmpty()) {

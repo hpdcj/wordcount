@@ -1,1 +1,4 @@
 /wordcount-pcj/nbproject/private/
+/.gradle
+/.idea
+/build

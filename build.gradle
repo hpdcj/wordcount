@@ -14,5 +14,5 @@ repositories {
 }
 
 dependencies {
-    implementation 'pl.edu.icm.pcj:pcj:5.0.8'
+    implementation 'pl.edu.icm.pcj:pcj:5.1.0'
 }
