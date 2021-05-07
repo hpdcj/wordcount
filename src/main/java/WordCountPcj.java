@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import org.pcj.Group;
-import org.pcj.NodesDescription;
 import org.pcj.PCJ;
 import org.pcj.RegisterStorage;
 import org.pcj.StartPoint;
@@ -32,6 +32,7 @@ public class WordCountPcj implements StartPoint {
         reducing,
         localCounts
     }
+
     public HashMap<String, Integer> localCounts;
     public HashMap<String, Integer> reducing;
 
@@ -40,14 +41,39 @@ public class WordCountPcj implements StartPoint {
         if (args.length > 0) {
             nodeFileName = args[0];
         }
-        PCJ.start(WordCountPcj.class, new NodesDescription(nodeFileName));
+        PCJ.executionBuilder(WordCountPcj.class)
+                .addNodes(new File(nodeFileName))
+                .addProperty("reduce", "hypercube")
+                .start();
     }
+
     String myFileName = "";
     long start, intermediate, stop;
 
     @Override
     public void main() throws Throwable {
-        Runnable reduceFunction = this::getGlobalCountSerial;
+        String reduce = PCJ.getProperty("reduce", "hypercube");
+        Runnable reduceFunction;
+        switch (reduce) {
+            case "serial":
+                reduceFunction = this::getGlobalCountSerial;
+                break;
+            case "node0":
+                reduceFunction = this::getGlobalCountParallelNode0;
+                break;
+            case "local":
+                reduceFunction = this::getGlobalCountReduceLocalFirst;
+                break;
+            case "hypercube":
+            default:
+                reduceFunction = this::getGlobalCountHypercube;
+                break;
+
+        }
+        if (PCJ.myId() == 0) {
+            System.out.println("Reduce function: " + reduce);
+        }
+
         readConfiguration();
         PCJ.barrier();
         start = System.nanoTime();
@@ -106,7 +132,9 @@ public class WordCountPcj implements StartPoint {
         int localThreadCount = Runtime.getRuntime().availableProcessors();
         Group localGroup = null;
         if (PCJ.myId() < localThreadCount) {
-            localGroup = PCJ.join("localGroup");
+            localGroup = PCJ.splitGroup(0, 0);
+        } else {
+            PCJ.splitGroup(null, 0);
         }
         return localGroup;
     }
